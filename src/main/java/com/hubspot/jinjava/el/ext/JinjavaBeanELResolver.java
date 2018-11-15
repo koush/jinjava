@@ -1,33 +1,45 @@
 package com.hubspot.jinjava.el.ext;
 
-import java.util.Set;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import javax.el.BeanELResolver;
 import javax.el.ELContext;
-import javax.el.MethodNotFoundException;
-
-import com.google.common.base.CaseFormat;
-import com.google.common.collect.ImmutableSet;
+import javax.el.ELResolver;
 
 /**
  * {@link BeanELResolver} supporting snake case property names.
  */
-public class JinjavaBeanELResolver extends BeanELResolver {
-  private static final Set<String> RESTRICTED_PROPERTIES = ImmutableSet.<String>builder()
-      .add("class")
-      .build();
+public class JinjavaBeanELResolver extends ELResolver {
+  private interface MemoizeFunc<T> {
+    T process() throws Exception;
+  }
 
-  private static final Set<String> RESTRICTED_METHODS = ImmutableSet.<String>builder()
-      .add("class")
-      .add("clone")
-      .add("hashCode")
-      .add("getClass")
-      .add("getDeclaringClass")
-      .add("forName")
-      .add("notify")
-      .add("notifyAll")
-      .add("wait")
-      .build();
+  private static class Memoize<T> {
+    int hash(Object... objects) {
+      int ret = 0;
+      for (Object o: objects) {
+        ret ^= o == null ? 0 : o.hashCode();
+      }
+      return ret;
+    }
+
+    HashMap<Integer, T> store = new HashMap<>();
+    T memoize(MemoizeFunc<T> func, Object... args) throws Exception {
+      int hash = hash(args);
+      if (store.containsKey(hash)) {
+        return store.get(hash);
+      }
+      T ret = func.process();
+      store.put(hash, ret);
+      return ret;
+    }
+  }
+
+  boolean readOnly;
 
   /**
    * Creates a new read/write {@link JinjavaBeanELResolver}.
@@ -38,67 +50,100 @@ public class JinjavaBeanELResolver extends BeanELResolver {
    * Creates a new {@link JinjavaBeanELResolver} whose read-only status is determined by the given parameter.
    */
   public JinjavaBeanELResolver(boolean readOnly) {
-    super(readOnly);
+    this.readOnly = readOnly;
+  }
+
+  @Override
+  public Class<?> getCommonPropertyType(ELContext elContext, Object o) {
+    return o == null ? null : Object.class;
+  }
+
+  @Override
+  public Iterator getFeatureDescriptors(ELContext elContext, Object o) {
+    return null;
   }
 
   @Override
   public Class<?> getType(ELContext context, Object base, Object property) {
-    return super.getType(context, base, validatePropertyName(property));
+    return null;
   }
+
+  Memoize<Field> values = new Memoize<>();
 
   @Override
   public Object getValue(ELContext context, Object base, Object property) {
-    Object result = super.getValue(context, base, validatePropertyName(property));
-    return result instanceof Class ? null : result;
+    try {
+      Field found = values.memoize(() -> {
+        for (Field field: base.getClass().getFields()) {
+          if (field.getName().equals(property.toString())) {
+            return field;
+          }
+        }
+        throw new IllegalArgumentException("unable to find field");
+      }, base.getClass(), property.toString());
+
+      context.setPropertyResolved(true);
+      return found.get(base);
+    }
+    catch (Exception e) {
+      context.setPropertyResolved(false);
+      return null;
+    }
   }
 
   @Override
   public boolean isReadOnly(ELContext context, Object base, Object property) {
-    return super.isReadOnly(context, base, validatePropertyName(property));
+    return readOnly;
   }
 
   @Override
   public void setValue(ELContext context, Object base, Object property, Object value) {
-    super.setValue(context, base, validatePropertyName(property), value);
+    return;
   }
+
+  Memoize<Method> invokes = new Memoize<>();
 
   @Override
-  public Object invoke(ELContext context, Object base, Object method, Class<?>[] paramTypes, Object[] params) {
-    if (method == null || RESTRICTED_METHODS.contains(method.toString())) {
-      throw new MethodNotFoundException("Cannot find method '" + method + "' in " + base.getClass());
+  public Object invoke(ELContext context, final Object base, Object methodName, Class<?>[] paramTypes, Object[] params) {
+    try {
+      context.setPropertyResolved(true);
+
+      ArrayList<Object> memo = new ArrayList<>();
+      memo.add(base.getClass());
+      memo.add(methodName);
+      for (Object param: params) {
+        if (param == null) {
+          memo.add(null);
+        }
+        else {
+          memo.add(param.getClass());
+        }
+      }
+      Method found = invokes.memoize(() -> {
+        for (Method method: base.getClass().getMethods()) {
+          if (!method.getName().equals(methodName)) {
+            continue;
+          }
+          Class[] paramTypes1 = method.getParameterTypes();
+          if (paramTypes1.length != params.length) {
+            continue;
+          }
+
+          for (int i = 0; i < params.length; i++) {
+            if (!paramTypes1[i].isInstance(params[i])) {
+              break;
+            }
+          }
+          return method;
+        }
+        throw new IllegalArgumentException("unable to find method");
+      }, memo.toArray());
+
+      return found.invoke(base, params);
     }
-    Object result = super.invoke(context, base, method, paramTypes, params);
-
-    if (result instanceof Class) {
-      throw new MethodNotFoundException("Cannot find method '" + method + "' in " + base.getClass());
-    }
-
-    return result;
-  }
-
-  private String validatePropertyName(Object property) {
-    String propertyName = transformPropertyName(property);
-
-    if (RESTRICTED_PROPERTIES.contains(propertyName)) {
+    catch (Exception e) {
+      context.setPropertyResolved(false);
       return null;
     }
-
-    return propertyName;
   }
-
-  /**
-   * Transform snake case to property name.
-   */
-  private String transformPropertyName(Object property) {
-    if (property == null) {
-      return null;
-    }
-
-    String propertyStr = property.toString();
-    if (propertyStr.indexOf('_') == -1) {
-      return propertyStr;
-    }
-    return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, propertyStr);
-  }
-
 }

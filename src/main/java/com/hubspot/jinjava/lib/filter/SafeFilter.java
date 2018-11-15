@@ -25,6 +25,7 @@ public class SafeFilter implements Filter {
   @Override
   public Object filter(Object var, JinjavaInterpreter interpreter,
       String... args) {
+    interpreter.getContext().setAutoEscape(false);
     return var;
   }
 
