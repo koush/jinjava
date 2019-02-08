@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.hubspot.jinjava.doc.annotations.JinjavaDoc;
@@ -69,7 +69,7 @@ public class MacroTag implements Tag {
     }
 
     String name = matcher.group(1);
-    String args = Objects.firstNonNull(matcher.group(2), "");
+    String args = MoreObjects.firstNonNull(matcher.group(2), "");
 
     LinkedHashMap<String, Object> argNamesWithDefaults = new LinkedHashMap<>();
 

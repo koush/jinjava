@@ -15,8 +15,6 @@ limitations under the License.
  **********************************************************************/
 package com.hubspot.jinjava.lib.tag;
 
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -119,19 +117,6 @@ public class ForTag implements Tag {
               }
 
               interpreter.getContext().put(loopVar, entryVal);
-            }
-            else {
-              try {
-                PropertyDescriptor[] valProps = Introspector.getBeanInfo(val.getClass()).getPropertyDescriptors();
-                for (PropertyDescriptor valProp : valProps) {
-                  if (loopVar.equals(valProp.getName())) {
-                    interpreter.getContext().put(loopVar, valProp.getReadMethod().invoke(val));
-                    break;
-                  }
-                }
-              } catch (Exception e) {
-                throw new InterpretException(e.getMessage(), e, tagNode.getLineNumber());
-              }
             }
           }
         }

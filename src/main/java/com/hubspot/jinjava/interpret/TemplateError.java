@@ -4,7 +4,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 public class TemplateError {
   public enum ErrorType {
@@ -108,7 +108,7 @@ public class TemplateError {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("severity", severity)
         .add("reason", reason)
         .add("message", message)

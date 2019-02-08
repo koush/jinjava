@@ -53,7 +53,7 @@ public class SplitFilter implements Filter {
       splitter = Splitter.on(args[0]);
     }
     else {
-      splitter = Splitter.on(CharMatcher.WHITESPACE);
+      splitter = Splitter.on(CharMatcher.whitespace());
     }
 
     if (args.length > 1) {
