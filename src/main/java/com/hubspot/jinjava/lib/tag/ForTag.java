@@ -15,19 +15,10 @@
  **********************************************************************/
 package com.hubspot.jinjava.lib.tag;
 
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.google.common.collect.Lists;
 import com.hubspot.jinjava.doc.annotations.JinjavaDoc;
 import com.hubspot.jinjava.doc.annotations.JinjavaParam;
 import com.hubspot.jinjava.doc.annotations.JinjavaSnippet;
-import com.hubspot.jinjava.interpret.InterpretException;
 import com.hubspot.jinjava.interpret.JinjavaInterpreter;
 import com.hubspot.jinjava.interpret.JinjavaInterpreter.InterpreterScopeClosable;
 import com.hubspot.jinjava.interpret.TemplateSyntaxException;
@@ -37,6 +28,12 @@ import com.hubspot.jinjava.util.ForLoop;
 import com.hubspot.jinjava.util.HelperStringTokenizer;
 import com.hubspot.jinjava.util.LengthLimitingStringBuilder;
 import com.hubspot.jinjava.util.ObjectIterator;
+
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * {% for a in b|f1:d,c %}
@@ -146,18 +143,6 @@ public class ForTag implements Tag {
               }
 
               interpreter.getContext().put(loopVar, entryVal);
-            } else {
-              try {
-                PropertyDescriptor[] valProps = Introspector.getBeanInfo(val.getClass()).getPropertyDescriptors();
-                for (PropertyDescriptor valProp : valProps) {
-                  if (loopVar.equals(valProp.getName())) {
-                    interpreter.getContext().put(loopVar, valProp.getReadMethod().invoke(val));
-                    break;
-                  }
-                }
-              } catch (Exception e) {
-                throw new InterpretException(e.getMessage(), e, tagNode.getLineNumber(), tagNode.getStartPosition());
-              }
             }
           }
         }

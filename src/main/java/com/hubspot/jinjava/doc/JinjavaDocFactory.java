@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
 import com.hubspot.jinjava.Jinjava;
 import com.hubspot.jinjava.doc.annotations.JinjavaMetaValue;
 import com.hubspot.jinjava.doc.annotations.JinjavaParam;
@@ -17,7 +16,6 @@ import com.hubspot.jinjava.doc.annotations.JinjavaSnippet;
 import com.hubspot.jinjava.lib.exptest.ExpTest;
 import com.hubspot.jinjava.lib.filter.Filter;
 import com.hubspot.jinjava.lib.fn.ELFunctionDefinition;
-import com.hubspot.jinjava.lib.fn.InjectedContextFunctionProxy;
 import com.hubspot.jinjava.lib.tag.EndTag;
 import com.hubspot.jinjava.lib.tag.Tag;
 
@@ -75,13 +73,6 @@ public class JinjavaDocFactory {
     for (ELFunctionDefinition fn : jinjava.getGlobalContext().getAllFunctions()) {
       if (StringUtils.isBlank(fn.getNamespace())) {
         Method realMethod = fn.getMethod();
-        if (realMethod.getDeclaringClass().getName().contains(InjectedContextFunctionProxy.class.getSimpleName())) {
-          try {
-            realMethod = (Method) realMethod.getDeclaringClass().getField("delegate").get(null);
-          } catch (Exception e) {
-            throw Throwables.propagate(e);
-          }
-        }
 
         com.hubspot.jinjava.doc.annotations.JinjavaDoc docAnnotation = realMethod.getAnnotation(com.hubspot.jinjava.doc.annotations.JinjavaDoc.class);
 

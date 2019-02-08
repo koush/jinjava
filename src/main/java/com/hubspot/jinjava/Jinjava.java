@@ -15,13 +15,6 @@
  **********************************************************************/
 package com.hubspot.jinjava;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
-import javax.el.ExpressionFactory;
-
 import com.hubspot.jinjava.doc.JinjavaDoc;
 import com.hubspot.jinjava.doc.JinjavaDocFactory;
 import com.hubspot.jinjava.el.ExtendedSyntaxBuilder;
@@ -37,9 +30,17 @@ import com.hubspot.jinjava.interpret.TemplateSyntaxException;
 import com.hubspot.jinjava.loader.ClasspathResourceLocator;
 import com.hubspot.jinjava.loader.ResourceLocator;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.el.ExpressionFactory;
+
 import de.odysseus.el.ExpressionFactoryImpl;
 import de.odysseus.el.misc.TypeConverter;
 import de.odysseus.el.tree.TreeBuilder;
+import java9.util.stream.Collectors;
+import java9.util.stream.StreamSupport;
 
 /**
  * The main client API for the Jinjava library, instances of this class can be used to render jinja templates with a given map of context values. Example use:
@@ -147,7 +148,7 @@ public class Jinjava {
   public String render(String template, Map<String, ?> bindings) {
     RenderResult result = renderForResult(template, bindings);
 
-    List<TemplateError> fatalErrors = result.getErrors().stream()
+    List<TemplateError> fatalErrors = StreamSupport.stream(result.getErrors())
         .filter(error -> error.getSeverity() == ErrorType.FATAL)
         .collect(Collectors.toList());
 

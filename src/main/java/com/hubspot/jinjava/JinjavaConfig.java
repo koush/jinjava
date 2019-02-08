@@ -32,7 +32,6 @@ public class JinjavaConfig {
 
   private final Charset charset;
   private final Locale locale;
-  private final ZoneId timeZone;
   private final int maxRenderDepth;
   private final long maxOutputSize;
 
@@ -52,16 +51,15 @@ public class JinjavaConfig {
   }
 
   public JinjavaConfig() {
-    this(StandardCharsets.UTF_8, Locale.ENGLISH, ZoneOffset.UTC, 10, new HashMap<>(), false, false, true, false, false, 0, true, RandomNumberGeneratorStrategy.THREAD_LOCAL);
+    this(StandardCharsets.UTF_8, Locale.ENGLISH, 10, new HashMap<>(), false, false, true, false, false, 0, true, RandomNumberGeneratorStrategy.THREAD_LOCAL);
   }
 
-  public JinjavaConfig(Charset charset, Locale locale, ZoneId timeZone, int maxRenderDepth) {
-    this(charset, locale, timeZone, maxRenderDepth, new HashMap<>(), false, false, true, false, false, 0, true, RandomNumberGeneratorStrategy.THREAD_LOCAL);
+  public JinjavaConfig(Charset charset, Locale locale, int maxRenderDepth) {
+    this(charset, locale, maxRenderDepth, new HashMap<>(), false, false, true, false, false, 0, true, RandomNumberGeneratorStrategy.THREAD_LOCAL);
   }
 
   private JinjavaConfig(Charset charset,
                         Locale locale,
-                        ZoneId timeZone,
                         int maxRenderDepth,
                         Map<Context.Library,
                         Set<String>> disabled,
@@ -75,7 +73,6 @@ public class JinjavaConfig {
                         RandomNumberGeneratorStrategy randomNumberGenerator) {
     this.charset = charset;
     this.locale = locale;
-    this.timeZone = timeZone;
     this.maxRenderDepth = maxRenderDepth;
     this.disabled = disabled;
     this.trimBlocks = trimBlocks;
@@ -94,10 +91,6 @@ public class JinjavaConfig {
 
   public Locale getLocale() {
     return locale;
-  }
-
-  public ZoneId getTimeZone() {
-    return timeZone;
   }
 
   public int getMaxRenderDepth() {
@@ -143,7 +136,6 @@ public class JinjavaConfig {
   public static class Builder {
     private Charset charset = StandardCharsets.UTF_8;
     private Locale locale = Locale.ENGLISH;
-    private ZoneId timeZone = ZoneOffset.UTC;
     private int maxRenderDepth = 10;
     private long maxOutputSize = 0; // in bytes
     private Map<Context.Library, Set<String>> disabled = new HashMap<>();
@@ -166,11 +158,6 @@ public class JinjavaConfig {
 
     public Builder withLocale(Locale locale) {
       this.locale = locale;
-      return this;
-    }
-
-    public Builder withTimeZone(ZoneId timeZone) {
-      this.timeZone = timeZone;
       return this;
     }
 
@@ -226,7 +213,7 @@ public class JinjavaConfig {
     }
 
     public JinjavaConfig build() {
-      return new JinjavaConfig(charset, locale, timeZone, maxRenderDepth, disabled, trimBlocks, lstripBlocks, readOnlyResolver, enableRecursiveMacroCalls, failOnUnknownTokens, maxOutputSize, nestedInterpretationEnabled, randomNumberGeneratorStrategy);
+      return new JinjavaConfig(charset, locale, maxRenderDepth, disabled, trimBlocks, lstripBlocks, readOnlyResolver, enableRecursiveMacroCalls, failOnUnknownTokens, maxOutputSize, nestedInterpretationEnabled, randomNumberGeneratorStrategy);
     }
 
   }

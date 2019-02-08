@@ -15,7 +15,9 @@ limitations under the License.
  **********************************************************************/
 package com.hubspot.jinjava.lib;
 
-import static com.hubspot.jinjava.util.Logging.ENGINE_LOG;
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableSet;
+import com.hubspot.jinjava.interpret.DisabledException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,13 +26,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
+import java9.util.stream.Collectors;
+import java9.util.stream.StreamSupport;
 
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableSet;
-import com.hubspot.jinjava.interpret.DisabledException;
+import static com.hubspot.jinjava.util.Logging.ENGINE_LOG;
 
 public abstract class SimpleLibrary<T extends Importable> {
 
@@ -89,7 +89,7 @@ public abstract class SimpleLibrary<T extends Importable> {
   }
 
   public Collection<T> entries() {
-    return lib.values().stream().filter(t -> !disabled.contains(t.getName())).collect(Collectors.toSet());
+    return StreamSupport.stream(lib.values()).filter(t -> !disabled.contains(t.getName())).collect(Collectors.toSet());
   }
 
 }

@@ -1,33 +1,5 @@
 package com.hubspot.jinjava.el;
 
-import static com.hubspot.jinjava.util.Logging.ENGINE_LOG;
-
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-
-import javax.el.ArrayELResolver;
-import javax.el.CompositeELResolver;
-import javax.el.ELContext;
-import javax.el.ELResolver;
-import javax.el.MapELResolver;
-import javax.el.PropertyNotFoundException;
-import javax.el.ResourceBundleELResolver;
-
-import org.apache.commons.lang3.LocaleUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.google.common.collect.ImmutableMap;
 import com.hubspot.jinjava.el.ext.AbstractCallableMethod;
 import com.hubspot.jinjava.el.ext.ExtendedParser;
@@ -45,10 +17,28 @@ import com.hubspot.jinjava.objects.PyWrapper;
 import com.hubspot.jinjava.objects.collections.PyList;
 import com.hubspot.jinjava.objects.collections.PyMap;
 import com.hubspot.jinjava.objects.date.FormattedDate;
-import com.hubspot.jinjava.objects.date.PyishDate;
-import com.hubspot.jinjava.objects.date.StrftimeFormatter;
+
+import org.apache.commons.lang3.LocaleUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+
+import javax.el.ArrayELResolver;
+import javax.el.CompositeELResolver;
+import javax.el.ELContext;
+import javax.el.ELResolver;
+import javax.el.MapELResolver;
+import javax.el.PropertyNotFoundException;
+import javax.el.ResourceBundleELResolver;
 
 import de.odysseus.el.util.SimpleResolver;
+import java9.util.Optional;
 
 public class JinjavaInterpreterResolver extends SimpleResolver {
 
@@ -211,41 +201,7 @@ public class JinjavaInterpreterResolver extends SimpleResolver {
       return new PyMap((Map<String, Object>) value);
     }
 
-    if (Date.class.isAssignableFrom(value.getClass())) {
-      return new PyishDate(localizeDateTime(interpreter, ZonedDateTime.ofInstant(Instant.ofEpochMilli(((Date) value).getTime()), ZoneOffset.UTC)));
-    }
-    if (ZonedDateTime.class.isAssignableFrom(value.getClass())) {
-      return new PyishDate(localizeDateTime(interpreter, (ZonedDateTime) value));
-    }
-
-    if (FormattedDate.class.isAssignableFrom(value.getClass())) {
-      return formattedDateToString(interpreter, (FormattedDate) value);
-    }
-
     return value;
-  }
-
-  private static ZonedDateTime localizeDateTime(JinjavaInterpreter interpreter, ZonedDateTime dt) {
-    ENGINE_LOG.debug("Using timezone: {} to localize datetime: {}", interpreter.getConfig().getTimeZone(), dt);
-    return dt.withZoneSameInstant(interpreter.getConfig().getTimeZone());
-  }
-
-  private static String formattedDateToString(JinjavaInterpreter interpreter, FormattedDate d) {
-    DateTimeFormatter formatter = getFormatter(interpreter, d).withLocale(getLocale(interpreter, d));
-    return formatter.format(localizeDateTime(interpreter, d.getDate()));
-  }
-
-  private static DateTimeFormatter getFormatter(JinjavaInterpreter interpreter, FormattedDate d) {
-    if (!StringUtils.isBlank(d.getFormat())) {
-      try {
-        return StrftimeFormatter.formatter(d.getFormat(), interpreter.getConfig().getLocale());
-      } catch (IllegalArgumentException e) {
-        interpreter.addError(new TemplateError(ErrorType.WARNING, ErrorReason.SYNTAX_ERROR, ErrorItem.OTHER, e.getMessage(), null, interpreter.getLineNumber(), -1, null,
-            BasicTemplateErrorCategory.UNKNOWN_DATE, ImmutableMap.of("date", d.getDate().toString(), "exception", e.getMessage(), "lineNumber", String.valueOf(interpreter.getLineNumber()))));
-      }
-    }
-
-    return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM);
   }
 
   private static Locale getLocale(JinjavaInterpreter interpreter, FormattedDate d) {

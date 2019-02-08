@@ -25,7 +25,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
@@ -55,6 +54,9 @@ import com.hubspot.jinjava.tree.output.OutputNode;
 import com.hubspot.jinjava.tree.output.RenderedOutputNode;
 import com.hubspot.jinjava.util.Variable;
 import com.hubspot.jinjava.util.WhitespaceUtils;
+
+import java9.util.Optional;
+import java9.util.stream.StreamSupport;
 
 public class JinjavaInterpreter {
 
@@ -461,7 +463,7 @@ public class JinjavaInterpreter {
     if (errors.size() >= MAX_ERROR_SIZE) {
       return;
     }
-    other.stream()
+    StreamSupport.stream(other)
         .limit(MAX_ERROR_SIZE - errors.size())
         .forEach(errors::add);
   }
@@ -476,7 +478,12 @@ public class JinjavaInterpreter {
     return Lists.newArrayList(errors);
   }
 
-  private static final ThreadLocal<Stack<JinjavaInterpreter>> CURRENT_INTERPRETER = ThreadLocal.withInitial(Stack::new);
+  private static final ThreadLocal<Stack<JinjavaInterpreter>> CURRENT_INTERPRETER = new ThreadLocal<Stack<JinjavaInterpreter>>() {
+    @Override
+    protected Stack<JinjavaInterpreter> initialValue() {
+      return new Stack<>();
+    }
+  };
 
   public static JinjavaInterpreter getCurrent() {
     if (CURRENT_INTERPRETER.get().isEmpty()) {

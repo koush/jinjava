@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -42,6 +41,10 @@ import com.hubspot.jinjava.lib.tag.Tag;
 import com.hubspot.jinjava.lib.tag.TagLibrary;
 import com.hubspot.jinjava.tree.Node;
 import com.hubspot.jinjava.util.ScopeMap;
+
+import java9.util.Maps;
+import java9.util.stream.Collectors;
+import java9.util.stream.StreamSupport;
 
 public class Context extends ScopeMap<String, Object> {
   public static final String GLOBAL_MACROS_SCOPE_KEY = "__macros__";
@@ -251,9 +254,9 @@ public class Context extends ScopeMap<String, Object> {
    * @param context - context object to apply resolved values from.
    */
   public void addResolvedFrom(Context context) {
-    context.getResolvedExpressions().forEach(this::addResolvedExpression);
-    context.getResolvedFunctions().forEach(this::addResolvedFunction);
-    context.getResolvedValues().forEach(this::addResolvedValue);
+    StreamSupport.stream(context.getResolvedExpressions()).forEach(this::addResolvedExpression);
+    StreamSupport.stream(context.getResolvedFunctions()).forEach(this::addResolvedFunction);
+    StreamSupport.stream(context.getResolvedValues()).forEach(this::addResolvedValue);
   }
 
   @SafeVarargs
@@ -321,7 +324,7 @@ public class Context extends ScopeMap<String, Object> {
   }
 
   public boolean isFunctionDisabled(String name) {
-    return disabled != null && disabled.getOrDefault(Library.FUNCTION, Collections.emptySet()).contains(name);
+    return disabled != null && Maps.getOrDefault(disabled, Library.FUNCTION, Collections.emptySet()).contains(name);
   }
 
   public ELFunctionDefinition getFunction(String name) {
@@ -342,9 +345,9 @@ public class Context extends ScopeMap<String, Object> {
       fns.addAll(parent.getAllFunctions());
     }
 
-    final Set<String> disabledFunctions = disabled == null ? new HashSet<>() : disabled.getOrDefault(Library.FUNCTION,
+    final Set<String> disabledFunctions = disabled == null ? new HashSet<>() : Maps.getOrDefault(disabled, Library.FUNCTION,
                                                                                                      new HashSet<>());
-    return fns.stream().filter(f -> !disabledFunctions.contains(f.getName())).collect(Collectors.toList());
+    return StreamSupport.stream(fns).filter(f -> !disabledFunctions.contains(f.getName())).collect(Collectors.toList());
   }
 
   public void registerFunction(ELFunctionDefinition f) {

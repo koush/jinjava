@@ -29,7 +29,6 @@ public class FilterLibrary extends SimpleLibrary<Filter> {
   protected void registerDefaults() {
     registerClasses(
         AttrFilter.class,
-        PrettyPrintFilter.class,
 
         DefaultFilter.class,
         DAliasedDefaultFilter.class,
@@ -80,7 +79,6 @@ public class FilterLibrary extends SimpleLibrary<Filter> {
         EAliasedEscapeFilter.class,
         EscapeJsFilter.class,
         ForceEscapeFilter.class,
-        StripTagsFilter.class,
         UrlEncodeFilter.class,
         XmlAttrFilter.class,
         EscapeJsonFilter.class,
@@ -92,7 +90,6 @@ public class FilterLibrary extends SimpleLibrary<Filter> {
         IndentFilter.class,
         LowerFilter.class,
         TruncateFilter.class,
-        TruncateHtmlFilter.class,
         UpperFilter.class,
         ReplaceFilter.class,
         StringFilter.class,
