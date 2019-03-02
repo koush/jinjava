@@ -20,7 +20,7 @@ android {
     dependencies {
         // begin jinjava.jar deps: fork https://github.com/koush/jinjava
         // todo: build jinjava directly with gradle, however, currently there only exists a POM.
-        api group: 'com.google.guava', name: 'guava', version: '23.5-android'
+        api group: 'com.google.guava', name: 'guava', version: '27.0.1-android'
         implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
         implementation group: 'de.odysseus.juel', name: 'juel-api', version: '2.2.7'
         implementation group: 'de.odysseus.juel', name: 'juel-impl', version: '2.2.7'
