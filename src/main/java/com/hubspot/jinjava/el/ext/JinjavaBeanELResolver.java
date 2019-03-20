@@ -2,6 +2,7 @@ package com.hubspot.jinjava.el.ext;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -74,6 +75,8 @@ public class JinjavaBeanELResolver extends ELResolver {
   public Object getValue(ELContext context, Object base, Object property) {
     try {
       Field found = values.memoize(() -> {
+        if (Proxy.isProxyClass(base.getClass()))
+          throw new IllegalArgumentException("unable to find field");
         for (Field field: base.getClass().getFields()) {
           if (field.getName().equals(property.toString())) {
             return field;
